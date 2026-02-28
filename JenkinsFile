@@ -1,53 +1,57 @@
-pipeline {
+  pipeline {
     agent any
-
-    environment {
-        // set GIT_CREDENTIALS if you need to authenticate
-        GIT_REPO = 'https://github.com/your-org/your-repo.git'
-    }
-
+    
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                // adjust credentialsId if private repo
-               git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
+                // Check out the code from the GitHub repository to the workspace
+                 git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
         }
-
-        stage('Scan YAMLs') {
+        
+        stage('Process YAML Files and Create CSV') {
             steps {
-                // install yq or rely on python/pip
-                sh '''
-                    echo "Looking for YAML files..."
-                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/yamllist
-
-                    if [ ! -s /var/lib/jenkins/workspace/yamllistt ]; then
-                        echo "No YAML files found."
-                        exit 0
-                    fi
-
-                    echo "Parsing cluster details from each YAML:"
-                    while read -r file; do
-                        echo "---- $file ----"
-                        # example using yq (https://github.com/mikefarah/yq)
-                        # you can adapt the query to your schema, e.g. .clusters[] etc.
-                        yq e '.cluster // empty' "$file" || echo "(no cluster key)"
-                        # or with python:
-                        # python3 - <<'PY'
-                        # import yaml,sys
-                        # with open(sys.argv[1]) as f:
-                        #     data=yaml.safe_load(f)
-                        #     print(data.get('cluster'))
-                        # PY
-                    done < /var/lib/jenkins/workspace/yamllist
-                '''
+                script {
+                    def csvRows = [['Cluster', 'Region']] // Initialize CSV header row
+                    
+                    // Find all YAML files in the 'configs' directory (adjust path as needed)
+                    def yamlFiles = findFiles(glob: 'configs/*.yml')
+                    
+                    if (yamlFiles.length > 0) {
+                        for (def file : yamlFiles) {
+                            // Read and parse the YAML file content
+                            def config = readYaml file: file.path
+                            
+                            // Extract cluster and region details
+                            def clusterName = config?.cluster
+                            def regionName = config?.region
+                            
+                            // Add details to the CSV rows if found
+                            if (clusterName && regionName) {
+                                csvRows.add([clusterName, regionName])
+                                echo "Found Cluster: ${clusterName}, Region: ${regionName}"
+                            } else {
+                                echo "Warning: Could not find 'cluster' or 'region' in ${file.path}"
+                            }
+                        }
+                        
+                        // Define the output CSV file path
+                        def csvFilePath = "${WORKSPACE}/output_details.csv"
+                        
+                        // Write the collected data to a CSV file in the workspace
+                        writeCSV file: csvFilePath, records: csvRows
+                        echo "Successfully created CSV file at ${csvFilePath}"
+                    } else {
+                        echo "No YAML files found in the specified directory."
+                    }
+                }
             }
         }
     }
-
     post {
         always {
-            echo 'Scan complete'
+            // Archive the generated CSV file for easy access from the Jenkins UI
+            archiveArtifacts artifacts: 'output_details.csv', onlyIfSuccessful: true
         }
     }
 }
