@@ -1,18 +1,27 @@
 pipeline {
     agent any
+
+    environment {
+        // set GIT_CREDENTIALS if you need to authenticate
+        GIT_REPO = 'https://github.com/your-org/your-repo.git'
+    }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
+                // adjust credentialsId if private repo
+               git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
-stage('Scan YAMLs') {
+        }
+
+        stage('Scan YAMLs') {
             steps {
                 // install yq or rely on python/pip
                 sh '''
                     echo "Looking for YAML files..."
-                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /tmp/yamllist
+                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/gitscan
 
-                    if [ ! -s /var/lib/jenkins/workspace/gitscan ]; then
+                    if [ ! -s /tmp/yamllist ]; then
                         echo "No YAML files found."
                         exit 0
                     fi
@@ -33,7 +42,12 @@ stage('Scan YAMLs') {
                     done < /var/lib/jenkins/workspace/gitscan
                 '''
             }
-         }
+        }
+    }
+
+    post {
+        always {
+            echo 'Scan complete'
         }
     }
 }
