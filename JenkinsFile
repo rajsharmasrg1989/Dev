@@ -19,7 +19,7 @@ pipeline {
                 // install yq or rely on python/pip
                 sh '''
                     echo "Looking for YAML files..."
-                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/gitscan
+                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/gitscan/dev.yml
 
                     if [ ! -s /tmp/yamllist ]; then
                         echo "No YAML files found."
