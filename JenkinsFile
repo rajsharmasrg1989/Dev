@@ -12,6 +12,7 @@ pipeline {
                 script {
                     // Read the YAML file (e.g., config/settings.yaml) from the workspace
                     def config = readYaml file: '/var/lib/jenkins/workspace/gitscan/dev.yml'
+                    echo "File read successfully"
 
                     // Access data from the YAML file
                     echo "The value of a property is: ${config.someProperty}"
