@@ -15,8 +15,8 @@ pipeline {
                     echo "File read successfully"
 
                     // Access data from the YAML file
-                    echo "The value of a property is: ${config.someProperty}"
-                   echo "A list item: $config"// Example for nested data
+                   echo "The value of a property is: ${config.cluster}"
+                 //  echo "A list item: ${config.cluster[0].name}"
                 }
             }
         }
