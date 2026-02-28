@@ -19,9 +19,9 @@ pipeline {
                 // install yq or rely on python/pip
                 sh '''
                     echo "Looking for YAML files..."
-                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/gitscan/dev.yml
+                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /var/lib/jenkins/workspace/yamllist
 
-                    if [ ! -s /tmp/yamllist ]; then
+                    if [ ! -s /var/lib/jenkins/workspace/yamllistt ]; then
                         echo "No YAML files found."
                         exit 0
                     fi
@@ -39,7 +39,7 @@ pipeline {
                         #     data=yaml.safe_load(f)
                         #     print(data.get('cluster'))
                         # PY
-                    done < /var/lib/jenkins/workspace/gitscan.txt
+                    done < /var/lib/jenkins/workspace/yamllist
                 '''
             }
         }
