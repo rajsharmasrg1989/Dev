@@ -1,57 +1,33 @@
-  pipeline {
+pipeline {
     agent any
-    
+
     stages {
         stage('Checkout Code') {
             steps {
-                // Check out the code from the GitHub repository to the workspace
-                 git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
+                // Uses the Git plugin to clone the repository into the workspace
+                git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
         }
-        
-        stage('Process YAML Files and Create CSV') {
+
+        stage('Read YAML files') {
             steps {
                 script {
-                    def csvRows = [['Cluster', 'Region']] // Initialize CSV header row
-                    
-                    // Find all YAML files in the 'configs' directory (adjust path as needed)
-                    def yamlFiles = findFiles(glob: 'configs/*.yml')
-                    
-                    if (yamlFiles.length > 0) {
-                        for (def file : yamlFiles) {
-                            // Read and parse the YAML file content
-                            def config = readYaml file: file.path
-                            
-                            // Extract cluster and region details
-                            def clusterName = config?.cluster
-                            def regionName = config?.region
-                            
-                            // Add details to the CSV rows if found
-                            if (clusterName && regionName) {
-                                csvRows.add([clusterName, regionName])
-                                echo "Found Cluster: ${clusterName}, Region: ${regionName}"
-                            } else {
-                                echo "Warning: Could not find 'cluster' or 'region' in ${file.path}"
-                            }
-                        }
-                        
-                        // Define the output CSV file path
-                        def csvFilePath = "${WORKSPACE}/output_details.csv"
-                        
-                        // Write the collected data to a CSV file in the workspace
-                        writeCSV file: csvFilePath, records: csvRows
-                        echo "Successfully created CSV file at ${csvFilePath}"
-                    } else {
-                        echo "No YAML files found in the specified directory."
+                    // Find all yaml or yml files in the workspace
+                    def yamlFiles = findFiles(glob: '**/*.yaml') + findFiles(glob: '**/*.yml')
+
+                    yamlFiles.each { file ->
+                        echo "Processing YAML file: ${file.name}"
+                        // Read the content of the file
+                        def fileContent = readFile file.path
+                        // You can then parse the content as YAML using a Groovy library
+                        // For complex parsing, you might need a dedicated Groovy YAML parser library
+                        // or use one of the utility plugins mentioned above.
+                        // Example (basic, requires Groovy YAML parsing knowledge):
+                        // def yamlData = new groovy.yaml.Yaml().parseText(fileContent)
+                        // echo "Data from ${file.name}: ${yamlData}"
                     }
                 }
             }
-        }
-    }
-    post {
-        always {
-            // Archive the generated CSV file for easy access from the Jenkins UI
-            archiveArtifacts artifacts: 'output_details.csv', onlyIfSuccessful: true
         }
     }
 }
