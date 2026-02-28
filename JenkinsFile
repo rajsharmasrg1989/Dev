@@ -39,7 +39,7 @@ pipeline {
                         #     data=yaml.safe_load(f)
                         #     print(data.get('cluster'))
                         # PY
-                    done < /var/lib/jenkins/workspace/gitscan
+                    done < /var/lib/jenkins/workspace/gitscan.txt
                 '''
             }
         }
