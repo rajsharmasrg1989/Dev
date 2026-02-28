@@ -5,6 +5,34 @@ pipeline {
             steps {
                 git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
+stage('Scan YAMLs') {
+            steps {
+                // install yq or rely on python/pip
+                sh '''
+                    echo "Looking for YAML files..."
+                    find . -type f \\( -name '*.yml' -o -name '*.yaml' \\) > /tmp/yamllist
+
+                    if [ ! -s /var/lib/jenkins/workspace/gitscan ]; then
+                        echo "No YAML files found."
+                        exit 0
+                    fi
+
+                    echo "Parsing cluster details from each YAML:"
+                    while read -r file; do
+                        echo "---- $file ----"
+                        # example using yq (https://github.com/mikefarah/yq)
+                        # you can adapt the query to your schema, e.g. .clusters[] etc.
+                        yq e '.cluster // empty' "$file" || echo "(no cluster key)"
+                        # or with python:
+                        # python3 - <<'PY'
+                        # import yaml,sys
+                        # with open(sys.argv[1]) as f:
+                        #     data=yaml.safe_load(f)
+                        #     print(data.get('cluster'))
+                        # PY
+                    done < /var/lib/jenkins/workspace/gitscan
+                '''
+            }
         }
     }
 }
