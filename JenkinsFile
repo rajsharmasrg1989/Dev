@@ -33,6 +33,7 @@ stage('Scan YAMLs') {
                     done < /var/lib/jenkins/workspace/gitscan
                 '''
             }
+         }
         }
     }
 }
