@@ -23,6 +23,7 @@ pipeline {
                         def fileName = yamlFiles[i].path
                         def fileContent = readYaml file: fileName
                         println("Content of ${fileName}: ${fileContent}")
+                        echo "$fileName"
                     }
                 }
             }
