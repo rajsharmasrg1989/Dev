@@ -1,31 +1,21 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout Code') {
             steps {
-                // Uses the Git plugin to clone the repository into the workspace
-                git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
+                // Check out your repository from GitHub
+               git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
         }
-
-        stage('Read YAML files') {
+        stage('Read YAML File') {
             steps {
                 script {
-                    // Find all yaml or yml files in the workspace
-                    def yamlFiles = findFiles(glob: '**/*.yaml') + findFiles(glob: '**/*.yml')
+                    // Read the YAML file (e.g., config/settings.yaml) from the workspace
+                    def config = readYaml file: '/var/lib/jenkins/workspace/gitscan/dev.yml'
 
-                    yamlFiles.each { file ->
-                        echo "Processing YAML file: ${file.name}"
-                        // Read the content of the file
-                        def fileContent = readFile file.path
-                        // You can then parse the content as YAML using a Groovy library
-                        // For complex parsing, you might need a dedicated Groovy YAML parser library
-                        // or use one of the utility plugins mentioned above.
-                        // Example (basic, requires Groovy YAML parsing knowledge):
-                        // def yamlData = new groovy.yaml.Yaml().parseText(fileContent)
-                        // echo "Data from ${file.name}: ${yamlData}"
-                    }
+                    // Access data from the YAML file
+                    echo "The value of a property is: ${config.someProperty}"
+                    echo "A list item: ${config.cluster[0].name}" // Example for nested data
                 }
             }
         }
