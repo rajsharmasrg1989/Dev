@@ -1,3 +1,2 @@
-api="cust-info"
-cluster="apiin01"
-location="India"
+cluster: apiin01
+location: India
