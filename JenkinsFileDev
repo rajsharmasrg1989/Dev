@@ -1,0 +1,105 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "ap-south-1"
+        ECR_REPO = "123456789.dkr.ecr.ap-south-1.amazonaws.com/python-app"
+        CLUSTER_NAME = "dev-eks-cluster"
+        NAMESPACE = "dev"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/company/python-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pytest
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                docker build -t python-app:${IMAGE_TAG} .
+                docker tag python-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'aws-credentials']]) {
+
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION \
+                | docker login --username AWS --password-stdin $ECR_REPO
+                '''
+                }
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                sh '''
+                docker push ${ECR_REPO}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: 'aws-credentials']]) {
+
+                sh '''
+                aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+
+                sed -i "s|<ECR_REPO>|${ECR_REPO}:${IMAGE_TAG}|g" deployment.yaml
+
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
+                '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                kubectl get pods -n ${NAMESPACE}
+                kubectl rollout status deployment/python-app -n ${NAMESPACE}
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful"
+        }
+
+        failure {
+            echo "Pipeline failed"
+        }
+    }
+}
