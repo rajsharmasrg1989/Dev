@@ -6,6 +6,16 @@ pipeline {
                 // Check out your repository from GitHub
                git url: 'https://github.com/rajsharmasrg1989/Dev.git', branch: 'main'
             }
+
+stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
         }
     }
 }
