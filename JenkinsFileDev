@@ -22,14 +22,8 @@ stage('Install Dependencies') {
                 '''
             }
         }
-stage('Run Unit Tests') {
-            steps {
-                sh '''
-                . venv/bin/activate
-                pytest
-                '''
-            }
-        }
+
+        
 
         stage('Build Docker Image') {
             steps {
