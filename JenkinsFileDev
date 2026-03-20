@@ -29,7 +29,7 @@ stage('Install Dependencies') {
             steps {
                 sh """
                 docker build -t python-app:${IMAGE_TAG} .
-                docker tag python-app:${IMAGE_TAG}}:${IMAGE_TAG}_latest
+                docker tag python-app:${IMAGE_TAG}} ${IMAGE_TAG}_latest
                 """
             }
         }
