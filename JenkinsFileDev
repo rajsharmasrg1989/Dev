@@ -35,7 +35,7 @@ stage('Run Unit Tests') {
             steps {
                 sh """
                 docker build -t python-app:${IMAGE_TAG} .
-                docker tag python-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
+                docker tag python-app:${IMAGE_TAG}}:${IMAGE_TAG}_latest
                 """
             }
         }
