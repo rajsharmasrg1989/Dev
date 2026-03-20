@@ -33,6 +33,32 @@ stage('Install Dependencies') {
                 """
             }
         }
+stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD'
+                )]) {
+                    sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                script {
+                    sh """
+                    docker push $DOCKER_IMAGE:${BUILD_NUMBER}
+                    docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                    docker push $DOCKER_IMAGE:latest
+                    """
+                }
+            }
+        }
+    
+
+
         }
     }
 
