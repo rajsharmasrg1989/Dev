@@ -55,7 +55,38 @@ stage('Login to Docker Hub') {
                 }
             }
         }
-    
+    stage('Configure AWS & EKS') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']]) {
+
+                    sh """
+                    aws eks update-kubeconfig \
+                      --region $AWS_REGION \
+                      --name $EKS_CLUSTER
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                sh """
+                kubectl set image deployment/python-app \
+                python-app=$DOCKER_IMAGE:${BUILD_NUMBER} --record || \
+                kubectl apply -f k8s/deployment.yaml
+
+                kubectl apply -f k8s/service.yaml
+                """
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh "kubectl rollout status deployment/python-app"
+            }
+        }
+
 
 
         }
