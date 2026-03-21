@@ -1,12 +1,6 @@
 pipeline {
-    agent any {
+    agent any 
 
-        kubernetes {
-            // Use an image that has kubectl pre-installed
-            image 'bitnami/kubectl:latest'
-            // Or use a custom pod template if needed
-        }
-}
   environment {
         DOCKER_IMAGE = "rajsra1989/python-app"
         AWS_REGION = "ap-south-1"
