@@ -108,7 +108,7 @@ stage('Login to Docker Hub') {
             }
         }
 
-
+}
 
         }
     }
