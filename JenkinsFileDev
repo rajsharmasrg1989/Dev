@@ -4,7 +4,7 @@ pipeline {
   environment {
         DOCKER_IMAGE = "rajsra1989/python-app"
         AWS_REGION = "ap-south-1"
-        EKS_CLUSTER = "deveks"
+        EKS_CLUSTER = "devclus"
     }
 
 
