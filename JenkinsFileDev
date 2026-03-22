@@ -96,6 +96,14 @@ stage('Login to Docker Hub') {
 }
         stage('Verify Deployment') {
             steps {
+                       withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']]) {
+
+                    sh """
+                    aws eks update-kubeconfig \
+                      --region $AWS_REGION \
+                      --name $EKS_CLUSTER
+                    """
                 sh "kubectl rollout status deployment/python-app"
             }
         }
